@@ -29,39 +29,52 @@ def emotion_detector(text_to_analyse):
         }
     }
 
-    response = requests.post(
-        url,
-        json=input_json,
-        headers=header,
-        timeout=60
-    )
+    try:
 
-    if response.status_code == 400:
+        response = requests.post(
+            url,
+            json=input_json,
+            headers=header,
+            timeout=60
+        )
+
+        if response.status_code == 400:
+            return {
+                'anger': None,
+                'disgust': None,
+                'fear': None,
+                'joy': None,
+                'sadness': None,
+                'dominant_emotion': None
+            }
+
+        formatted_response = response.json()
+
+        emotions = formatted_response[
+            'emotionPredictions'
+        ][0]['emotion']
+
+        dominant_emotion = max(
+            emotions,
+            key=emotions.get
+        )
+
         return {
-            'anger': None,
-            'disgust': None,
-            'fear': None,
-            'joy': None,
-            'sadness': None,
-            'dominant_emotion': None
+            'anger': emotions['anger'],
+            'disgust': emotions['disgust'],
+            'fear': emotions['fear'],
+            'joy': emotions['joy'],
+            'sadness': emotions['sadness'],
+            'dominant_emotion': dominant_emotion
         }
 
-    formatted_response = response.json()
+    except requests.exceptions.RequestException:
 
-    emotions = formatted_response[
-        'emotionPredictions'
-    ][0]['emotion']
-
-    dominant_emotion = max(
-        emotions,
-        key=emotions.get
-    )
-
-    return {
-        'anger': emotions['anger'],
-        'disgust': emotions['disgust'],
-        'fear': emotions['fear'],
-        'joy': emotions['joy'],
-        'sadness': emotions['sadness'],
-        'dominant_emotion': dominant_emotion
-    }
+        return {
+            'anger': 0,
+            'disgust': 0,
+            'fear': 0,
+            'joy': 0,
+            'sadness': 0,
+            'dominant_emotion': "connection_error"
+        }
